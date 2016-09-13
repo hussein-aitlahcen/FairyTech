@@ -5,11 +5,12 @@ using UnityEditor.Animations;
 
 public class Startup : MonoBehaviour
 {
-    
+    private NetworkClient m_client;
     private int heroIndex;
 
 	void Start ()
     {
+        (m_client = new NetworkClient()).Start();
         InvokeRepeating("CreateHero", 0f, 5f);
 	}
     
