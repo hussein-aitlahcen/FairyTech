@@ -16,17 +16,20 @@ namespace FairyTech.Server.Game
     {
         public static TimeSpan UpdateDelay = TimeSpan.FromMilliseconds(10);
 
+        private readonly GameHandler m_handler;
         private readonly GameServer m_server;
         private readonly Stopwatch m_worldWatch;
 
         public WorldLogic()
         {
+            m_handler = new GameHandler();
             m_server = new GameServer();
             m_worldWatch = new Stopwatch();
         }
 
         public void Start()
         {
+            m_handler.Initialize();
             m_server.Start();
             m_worldWatch.Start();
 
@@ -45,6 +48,7 @@ namespace FairyTech.Server.Game
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
             }
 
             Update(dt);
@@ -79,19 +83,61 @@ namespace FairyTech.Server.Game
                         switch (message.SenderConnection.Status)
                         {
                             case NetConnectionStatus.Connected:
-                                var outgoing = message.SenderConnection.Peer.CreateMessage();
-                                outgoing.Write(new SM_Welcome().Serialize());
-                                message.SenderConnection.SendMessage(outgoing, NetDeliveryMethod.ReliableOrdered, 0);
+                                OnPlayerConnected(message.SenderConnection);
                                 break;
+                            case NetConnectionStatus.None:
+                                break;
+                            case NetConnectionStatus.InitiatedConnect:
+                                break;
+                            case NetConnectionStatus.ReceivedInitiation:
+                                break;
+                            case NetConnectionStatus.RespondedAwaitingApproval:
+                                break;
+                            case NetConnectionStatus.RespondedConnect:
+                                break;
+                            case NetConnectionStatus.Disconnecting:
+                                break;
+                            case NetConnectionStatus.Disconnected:
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
                         break;
 
                     case NetIncomingMessageType.Data:
-                        var deserialized = AbstractNetworkMessage.Deserialize(message.ReadBytes(message.LengthBytes));
-                        HandlerInitializer.Handle(message.SenderConnection.Tag as Player, deserialized);
+                        OnPlayerMessage((Player) message.SenderConnection.Tag, AbstractNetworkMessage.Deserialize(message.ReadBytes(message.LengthBytes)));
+                        break;
+
+
+                    case NetIncomingMessageType.Error:
+                        break;
+                    case NetIncomingMessageType.UnconnectedData:
+                        break;
+                    case NetIncomingMessageType.ConnectionApproval:
+                        break;
+                    case NetIncomingMessageType.Receipt:
+                        break;
+                    case NetIncomingMessageType.DiscoveryRequest:
+                        break;
+                    case NetIncomingMessageType.DiscoveryResponse:
+                        break;
+                    case NetIncomingMessageType.NatIntroductionSuccess:
+                        break;
+                    case NetIncomingMessageType.ConnectionLatencyUpdated:
                         break;
                 }
             }
+        }
+
+        private void OnPlayerMessage(Player player, AbstractNetworkMessage message)
+        {
+            Console.WriteLine("received << " + message.GetType().Name);
+            m_handler.Handle(player, message);
+        }
+
+        private void OnPlayerConnected(NetConnection connection)
+        {
+            new Player(connection).SendReliable(new SM_Welcome());
         }
     }
 }

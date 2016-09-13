@@ -6,7 +6,7 @@ using ProtoBuf;
 
 namespace FairyTech.Common.Network.Protocol.Type.Message
 {
-    [ProtoContract(ImplicitFields = ImplicitFields.AllFields)]
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public sealed class SM_AuthenticationResult : AbstractNetworkMessage
     {
         public bool Success { get; set; }

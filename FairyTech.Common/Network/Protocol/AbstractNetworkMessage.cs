@@ -12,6 +12,7 @@ namespace FairyTech.Common.Network.Protocol
     [ProtoInclude((int)MessageTypeId.SM_AUTHENTICATION_RESULT, typeof(SM_AuthenticationResult))]
     [ProtoInclude((int)MessageTypeId.CM_AUTHENTICATION_REQUEST, typeof(CM_AuthenticationRequest))]
     [ProtoInclude((int)MessageTypeId.SM_WELCOME, typeof(SM_Welcome))]
+    [ProtoContract]
     public abstract class AbstractNetworkMessage
     {  
         private byte[] m_serializedBuffer;

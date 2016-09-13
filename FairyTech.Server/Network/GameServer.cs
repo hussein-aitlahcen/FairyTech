@@ -15,7 +15,6 @@ namespace FairyTech.Server.Network
             Port = 2648
         })
         {
-            HandlerInitializer.Initialize();
         }
     }
 }

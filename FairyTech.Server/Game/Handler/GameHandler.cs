@@ -8,16 +8,16 @@ using FairyTech.Common.Network.Protocol;
 
 namespace FairyTech.Server.Game.Handler
 {
-    public static class HandlerInitializer
+    public sealed class GameHandler
     {
-        private static Dictionary<Type, Action<Player, AbstractNetworkMessage>> Handlers =
+        private readonly Dictionary<Type, Action<Player, AbstractNetworkMessage>> m_handlers =
             new Dictionary<Type, Action<Player, AbstractNetworkMessage>>();
          
-        public static void Initialize()
+        public void Initialize()
         {
             foreach (
                 var type in
-                    typeof (HandlerInitializer).Module.GetTypes()
+                    typeof (GameHandler).Module.GetTypes()
                         .Where(t => t.GetCustomAttribute(typeof (GameHandlerAttribute)) != null))
             {
                 foreach (var field in type.GetFields(BindingFlags.Static | BindingFlags.NonPublic).Where(
@@ -25,7 +25,7 @@ namespace FairyTech.Server.Game.Handler
                 {
                     var handler = field.GetValue(null);
                     var genericType = field.FieldType.GenericTypeArguments[0];
-                    Handlers[genericType] = (player, message) =>
+                    m_handlers[genericType] = (player, message) =>
                     {
                         var changed = Convert.ChangeType(message, genericType);
                         ((dynamic)handler).DynamicInvoke(player, changed);
@@ -34,9 +34,9 @@ namespace FairyTech.Server.Game.Handler
             }
         }
 
-        public static void Handle(Player player, AbstractNetworkMessage message)
+        public void Handle(Player player, AbstractNetworkMessage message)
         {
-            Handlers[message.GetType()](player, message);
+            m_handlers[message.GetType()](player, message);
         }
     }
 }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using FairyTech.Common.Generic;
 using FairyTech.Common.Network.Protocol;
+using FairyTech.Common.Network.Protocol.Type.Message;
 using Lidgren.Network;
 using UnityEngine;
 
@@ -43,11 +45,17 @@ public sealed class NetworkClient
                     case NetIncomingMessageType.Data:
                         try
                         {
-                            var deserialized = AbstractNetworkMessage.Deserialize(message.ReadBytes(message.LengthBytes));
+                            var deserialized = AbstractNetworkMessage.Deserialize(message.ReadBytes(message.ReadInt32()));
+                            Debug.Log("message < " + deserialized.GetType().Name);
+                            new TypeSwitch(deserialized)
+                                .With<SM_Welcome>(m =>
+                                {
+                                    // TODO: process
+                                });
                         }
                         catch (Exception e)
                         {
-                            
+                            Debug.LogError(e.ToString());   
                         }
                         Debug.LogWarning("message received");
                         break;
