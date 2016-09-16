@@ -17,6 +17,8 @@ namespace FairyTech.Common.Network.Protocol
     {  
         private byte[] m_serializedBuffer;
 
+        protected AbstractNetworkMessage() { }
+
         public byte[] Serialize()
         {
             if (m_serializedBuffer == null)

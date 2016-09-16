@@ -19,12 +19,14 @@ namespace FairyTech.Server.Game
         private readonly GameHandler m_handler;
         private readonly GameServer m_server;
         private readonly Stopwatch m_worldWatch;
+        private readonly HashSet<Player> m_players;  
 
         public WorldLogic()
         {
             m_handler = new GameHandler();
             m_server = new GameServer();
             m_worldWatch = new Stopwatch();
+            m_players = new HashSet<Player>();
         }
 
         public void Start()
@@ -83,7 +85,7 @@ namespace FairyTech.Server.Game
                         switch (message.SenderConnection.Status)
                         {
                             case NetConnectionStatus.Connected:
-                                OnPlayerConnected(message.SenderConnection);
+                                OnPlayerConnected(new Player(message.SenderConnection));
                                 break;
                             case NetConnectionStatus.None:
                                 break;
@@ -98,6 +100,7 @@ namespace FairyTech.Server.Game
                             case NetConnectionStatus.Disconnecting:
                                 break;
                             case NetConnectionStatus.Disconnected:
+                                OnPlayerDisconnected((Player)message.SenderConnection.Tag);
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -105,7 +108,7 @@ namespace FairyTech.Server.Game
                         break;
 
                     case NetIncomingMessageType.Data:
-                        OnPlayerMessage((Player) message.SenderConnection.Tag, AbstractNetworkMessage.Deserialize(message.ReadBytes(message.LengthBytes)));
+                        OnPlayerMessage((Player) message.SenderConnection.Tag, AbstractNetworkMessage.Deserialize(message.ReadBytes(message.ReadInt32())));
                         break;
 
 
@@ -135,9 +138,14 @@ namespace FairyTech.Server.Game
             m_handler.Handle(player, message);
         }
 
-        private void OnPlayerConnected(NetConnection connection)
+        private void OnPlayerConnected(Player player)
         {
-            new Player(connection).SendReliable(new SM_Welcome());
+            m_players.Add(player);
+        }
+
+        private void OnPlayerDisconnected(Player player)
+        {
+            m_players.Remove(player);
         }
     }
 }
